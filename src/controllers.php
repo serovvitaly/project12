@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @var $app \Silex\Application
+ */
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,7 +18,7 @@ $app->get('/', function () use ($app) {
 
 $app->error(function (\Exception $e, Request $request, $code) use ($app) {
     if ($app['debug']) {
-        return;
+        return null;
     }
 
     // 404.html, or 40x.html, or 4xx.html, or error.html
