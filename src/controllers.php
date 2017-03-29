@@ -31,3 +31,43 @@ $app->error(function (\Exception $e, Request $request, $code) use ($app) {
 
     return new Response($app['twig']->resolveTemplate($templates)->render(array('code' => $code)), $code);
 });
+
+
+
+
+/**
+ * Вывод статей для указанной страницы
+ */
+$app->get('/page/{pageId}/', function (int $pageId) use ($app) {
+    /** @var \Service\Recommender\RecommenderService $recommender */
+    $recommender = $app['recommender'];
+    $limit = 12;
+    $offset = ($pageId - 1) * $limit;
+    $recommender->setLimit($limit);
+    $recommender->setOffset($offset);
+    $documentsIdsArr = $recommender->getDocumentsIds();
+    $offersEntityArr = $app['offers.repository']->findBy([
+        'id' => $documentsIdsArr,
+        //'status' => 'p',
+    ]);
+    if (empty($offersEntityArr)) {
+        return json_encode([
+            'count' => 0,
+            'items' => [],
+        ]);
+    }
+    /** @var \AppBundle\Entity\OfferEntity $offerEntity */
+    $offersArr = [];
+    foreach ($offersEntityArr as $offerEntity) {
+        $offersArr[] = $app['twig']->render('article-mini.html', [
+            'atricle_id' => $offerEntity->getId(),
+            'atricle_title' => $offerEntity->getTitle(),
+            'atricle_image_url' => '',
+            'atricle_url' => '',
+        ]);
+    }
+    return json_encode([
+        'count' => count($offersEntityArr),
+        'items' => $offersArr,
+    ]);
+});
